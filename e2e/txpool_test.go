@@ -658,6 +658,7 @@ func TestTxPool_RecoverableError(t *testing.T) {
 		config.SetSeal(true)
 		config.SetDevInterval(5)
 		config.Premine(senderAddress, framework.EthToWei(100))
+		config.SetShowsLog(true)
 	})
 
 	server := servers[0]

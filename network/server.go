@@ -272,12 +272,15 @@ func (s *Server) runDial() {
 
 	for {
 		slots := s.numOpenSlots()
+		fmt.Printf("\nrunDial slots = %d\n", slots)
 
 		// TODO: Right now the dial task are done sequentially because Connect
 		// is a blocking request. In the future we should try to make up to
 		// maxDials requests concurrently.
 		for i := int64(0); i < slots; i++ {
+			fmt.Printf("\nrunDial slots = %d, i = %d\n", slots, i)
 			tt := s.dialQueue.pop()
+			fmt.Printf("\nrunDial peer = %+v\n", tt)
 			if tt == nil {
 				// dial closed
 				return
@@ -296,6 +299,8 @@ func (s *Server) runDial() {
 				}
 			}
 		}
+
+		fmt.Printf("\nrunDial start wait\n")
 
 		// wait until there is a change in the state of a peer that
 		// might involve a new dial slot available
@@ -540,6 +545,7 @@ func (s *Server) AddrInfo() *peer.AddrInfo {
 }
 
 func (s *Server) addToDialQueue(addr *peer.AddrInfo, priority uint64) {
+	fmt.Printf("addToDialQueue %+v\n", addr)
 	s.dialQueue.add(addr, priority)
 	s.emitEvent(addr.ID, PeerAddedToDialQueue)
 }
