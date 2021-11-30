@@ -540,6 +540,7 @@ func TestRunDial(t *testing.T) {
 	}
 
 	t.Run("should connect to all peers", func(t *testing.T) {
+		fmt.Printf("\nshould connect to all peers\n")
 		maxPeers := []uint64{2, 1, 1}
 		servers := setupServers(t, maxPeers)
 		srv, peers := servers[0], servers[1:]
@@ -553,6 +554,7 @@ func TestRunDial(t *testing.T) {
 	})
 
 	t.Run("should fail to connect to some peers due to reaching limit", func(t *testing.T) {
+		fmt.Printf("\nshould fail to connect to some peers due to reaching limit\n")
 		maxPeers := []uint64{2, 1, 1, 1}
 		servers := setupServers(t, maxPeers)
 		srv, peers := servers[0], servers[1:]
@@ -570,6 +572,7 @@ func TestRunDial(t *testing.T) {
 	})
 
 	t.Run("should try to connect after adding a peer to queue", func(t *testing.T) {
+		fmt.Printf("\nshould try to connect after adding a peer to queue\n")
 		maxPeers := []uint64{1, 1, 1}
 		servers := setupServers(t, maxPeers)
 		srv, peers := servers[0], servers[1:]
@@ -579,7 +582,7 @@ func TestRunDial(t *testing.T) {
 		connected := connectToPeer(srv, peers[0].AddrInfo(), 15*time.Second)
 		assert.False(t, connected)
 
-		connected = connectToPeer(srv, peers[1].AddrInfo(), 5*time.Second)
+		connected = connectToPeer(srv, peers[1].AddrInfo(), 15*time.Second)
 		assert.True(t, connected)
 
 		closeServers(srv, peers[1])

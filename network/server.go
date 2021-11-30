@@ -295,6 +295,7 @@ func (s *Server) runDial() {
 				// the connection process is async because it involves connection (here) +
 				// the handshake done in the identity service.
 				if err := s.host.Connect(context.Background(), *tt.addr); err != nil {
+					fmt.Printf("failed to dial %+v err=%+v", tt.addr, err)
 					s.logger.Trace("failed to dial", "addr", tt.addr.String(), "err", err)
 				}
 			}
