@@ -1,3 +1,4 @@
+//go:build !js
 // +build !js
 
 package websocket
@@ -11,7 +12,7 @@ import (
 	ws "github.com/gorilla/websocket"
 	"github.com/libp2p/go-libp2p-core/transport"
 	ma "github.com/multiformats/go-multiaddr"
-	manet "github.com/multiformats/go-multiaddr-net"
+	manet "github.com/multiformats/go-multiaddr/net"
 )
 
 // Default gorilla upgrader
@@ -74,7 +75,7 @@ func (t *WebsocketTransport) Listen(a ma.Multiaddr) (transport.Listener, error) 
 	if err != nil {
 		return nil, err
 	}
-	return t.Upgrader.UpgradeListener(t, malist), nil
+	return t.upgrader.UpgradeListener(t, malist), nil
 }
 
 func (t *WebsocketTransport) wrapListener(l net.Listener, origin *url.URL) (*listener, error) {

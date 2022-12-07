@@ -1,12 +1,17 @@
 package sm_yamux
 
 import (
-	"github.com/libp2p/go-libp2p-core/mux"
-	"github.com/libp2p/go-yamux"
+	"context"
+
+	"github.com/libp2p/go-libp2p-core/network"
+
+	"github.com/libp2p/go-yamux/v3"
 )
 
 // conn implements mux.MuxedConn over yamux.Session.
 type conn yamux.Session
+
+var _ network.MuxedConn = &conn{}
 
 // Close closes underlying yamux
 func (c *conn) Close() error {
@@ -19,8 +24,8 @@ func (c *conn) IsClosed() bool {
 }
 
 // OpenStream creates a new stream.
-func (c *conn) OpenStream() (mux.MuxedStream, error) {
-	s, err := c.yamux().OpenStream()
+func (c *conn) OpenStream(ctx context.Context) (network.MuxedStream, error) {
+	s, err := c.yamux().OpenStream(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +34,7 @@ func (c *conn) OpenStream() (mux.MuxedStream, error) {
 }
 
 // AcceptStream accepts a stream opened by the other side.
-func (c *conn) AcceptStream() (mux.MuxedStream, error) {
+func (c *conn) AcceptStream() (network.MuxedStream, error) {
 	s, err := c.yamux().AcceptStream()
 	return (*stream)(s), err
 }
@@ -37,5 +42,3 @@ func (c *conn) AcceptStream() (mux.MuxedStream, error) {
 func (c *conn) yamux() *yamux.Session {
 	return (*yamux.Session)(c)
 }
-
-var _ mux.MuxedConn = &conn{}

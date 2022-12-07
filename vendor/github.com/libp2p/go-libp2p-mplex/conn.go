@@ -1,11 +1,16 @@
 package peerstream_multiplex
 
 import (
-	"github.com/libp2p/go-libp2p-core/mux"
+	"context"
+
+	"github.com/libp2p/go-libp2p-core/network"
+
 	mp "github.com/libp2p/go-mplex"
 )
 
 type conn mp.Multiplex
+
+var _ network.MuxedConn = &conn{}
 
 func (c *conn) Close() error {
 	return c.mplex().Close()
@@ -16,8 +21,8 @@ func (c *conn) IsClosed() bool {
 }
 
 // OpenStream creates a new stream.
-func (c *conn) OpenStream() (mux.MuxedStream, error) {
-	s, err := c.mplex().NewStream()
+func (c *conn) OpenStream(ctx context.Context) (network.MuxedStream, error) {
+	s, err := c.mplex().NewStream(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +30,7 @@ func (c *conn) OpenStream() (mux.MuxedStream, error) {
 }
 
 // AcceptStream accepts a stream opened by the other side.
-func (c *conn) AcceptStream() (mux.MuxedStream, error) {
+func (c *conn) AcceptStream() (network.MuxedStream, error) {
 	s, err := c.mplex().Accept()
 	if err != nil {
 		return nil, err
@@ -36,5 +41,3 @@ func (c *conn) AcceptStream() (mux.MuxedStream, error) {
 func (c *conn) mplex() *mp.Multiplex {
 	return (*mp.Multiplex)(c)
 }
-
-var _ mux.MuxedConn = &conn{}
