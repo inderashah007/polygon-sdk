@@ -24,7 +24,7 @@ require (
 	github.com/libp2p/go-libp2p-pubsub v0.4.1
 	github.com/mitchellh/cli v1.0.0
 	github.com/multiformats/go-multiaddr v0.3.1
-	github.com/prometheus/client_golang v1.4.0
+	github.com/prometheus/client_golang v1.11.1
 	github.com/ryanuber/columnize v2.1.2+incompatible
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d
