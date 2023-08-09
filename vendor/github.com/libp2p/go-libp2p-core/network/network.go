@@ -10,7 +10,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/jbenet/goprocess"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/peerstore"
 
@@ -97,12 +96,21 @@ func (r Reachability) String() string {
 	return str[r]
 }
 
-// Stat stores metadata pertaining to a given Stream/Conn.
-type Stat struct {
+// ConnStats stores metadata pertaining to a given Conn.
+type ConnStats struct {
+	Stats
+	// NumStreams is the number of streams on the connection.
+	NumStreams int
+}
+
+// Stats stores metadata pertaining to a given Stream / Conn.
+type Stats struct {
 	// Direction specifies whether this is an inbound or an outbound connection.
 	Direction Direction
 	// Opened is the timestamp when this connection was opened.
 	Opened time.Time
+	// Transient indicates that this connection is transient and may be closed soon.
+	Transient bool
 	// Extra stores additional metadata about this connection.
 	Extra map[interface{}]interface{}
 }
@@ -110,10 +118,6 @@ type Stat struct {
 // StreamHandler is the type of function used to listen for
 // streams opened by the remote side.
 type StreamHandler func(Stream)
-
-// ConnHandler is the type of function used to listen for
-// connections opened by the remote side.
-type ConnHandler func(Conn)
 
 // Network is the interface used to connect to the outside world.
 // It dials and listens for connections. it uses a Swarm to pool
@@ -126,10 +130,6 @@ type Network interface {
 	// SetStreamHandler sets the handler for new streams opened by the
 	// remote side. This operation is threadsafe.
 	SetStreamHandler(StreamHandler)
-
-	// SetConnHandler sets the handler for new connections opened by the
-	// remote side. This operation is threadsafe.
-	SetConnHandler(ConnHandler)
 
 	// NewStream returns a new stream to given peer p.
 	// If there is no connection to p, attempts to create one.
@@ -146,8 +146,8 @@ type Network interface {
 	// use the known local interfaces.
 	InterfaceListenAddresses() ([]ma.Multiaddr, error)
 
-	// Process returns the network's Process
-	Process() goprocess.Process
+	// ResourceManager returns the ResourceManager associated with this network
+	ResourceManager() ResourceManager
 }
 
 // Dialer represents a service that can dial out to peers

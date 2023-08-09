@@ -81,11 +81,11 @@ func wrap(nconn net.Conn, laddr, raddr ma.Multiaddr) Conn {
 // This function does it's best to avoid "hiding" methods exposed by the wrapped
 // type. Guarantees:
 //
-// * If the wrapped connection exposes the "half-open" closer methods
-//   (CloseWrite, CloseRead), these will be available on the wrapped connection
-//   via type assertions.
-// * If the wrapped connection is a UnixConn, IPConn, TCPConn, or UDPConn, all
-//   methods on these wrapped connections will be available via type assertions.
+//   - If the wrapped connection exposes the "half-open" closer methods
+//     (CloseWrite, CloseRead), these will be available on the wrapped connection
+//     via type assertions.
+//   - If the wrapped connection is a UnixConn, IPConn, TCPConn, or UDPConn, all
+//     methods on these wrapped connections will be available via type assertions.
 func WrapNetConn(nconn net.Conn) (Conn, error) {
 	if nconn == nil {
 		return nil, fmt.Errorf("failed to convert nconn.LocalAddr: nil")
@@ -224,9 +224,9 @@ func (nla *netListenerAdapter) Accept() (net.Conn, error) {
 
 // NetListener turns this Listener into a net.Listener.
 //
-// * Connections returned from Accept implement multiaddr/net Conn.
-// * Calling WrapNetListener on the net.Listener returned by this function will
-//   return the original (underlying) multiaddr/net Listener.
+//   - Connections returned from Accept implement multiaddr/net Conn.
+//   - Calling WrapNetListener on the net.Listener returned by this function will
+//     return the original (underlying) multiaddr/net Listener.
 func NetListener(l Listener) net.Listener {
 	return &netListenerAdapter{l}
 }
@@ -248,14 +248,22 @@ func (l *maListener) Accept() (Conn, error) {
 	var raddr ma.Multiaddr
 	// This block protects us in transports (i.e. unix sockets) that don't have
 	// remote addresses for inbound connections.
-	if nconn.RemoteAddr().String() != "" {
-		raddr, err = FromNetAddr(nconn.RemoteAddr())
+	if addr := nconn.RemoteAddr(); addr != nil && addr.String() != "" {
+		raddr, err = FromNetAddr(addr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert conn.RemoteAddr: %s", err)
 		}
 	}
 
-	return wrap(nconn, l.laddr, raddr), nil
+	var laddr ma.Multiaddr
+	if addr := nconn.LocalAddr(); addr != nil && addr.String() != "" {
+		laddr, err = FromNetAddr(addr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert conn.LocalAddr: %s", err)
+		}
+	}
+
+	return wrap(nconn, laddr, raddr), nil
 }
 
 // Multiaddr returns the listener's (local) Multiaddr.

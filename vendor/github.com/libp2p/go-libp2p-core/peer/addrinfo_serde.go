@@ -3,36 +3,45 @@ package peer
 import (
 	"encoding/json"
 
+	"github.com/libp2p/go-libp2p-core/internal/catch"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-func (pi AddrInfo) MarshalJSON() ([]byte, error) {
-	out := make(map[string]interface{})
-	out["ID"] = pi.ID.Pretty()
-	var addrs []string
-	for _, a := range pi.Addrs {
-		addrs = append(addrs, a.String())
-	}
-	out["Addrs"] = addrs
-	return json.Marshal(out)
+// Helper struct for decoding as we can't unmarshal into an interface (Multiaddr).
+type addrInfoJson struct {
+	ID    ID
+	Addrs []string
 }
 
-func (pi *AddrInfo) UnmarshalJSON(b []byte) error {
-	var data map[string]interface{}
-	err := json.Unmarshal(b, &data)
-	if err != nil {
+func (pi AddrInfo) MarshalJSON() (res []byte, err error) {
+	defer func() { catch.HandlePanic(recover(), &err, "libp2p addr info marshal") }()
+
+	addrs := make([]string, len(pi.Addrs))
+	for i, addr := range pi.Addrs {
+		addrs[i] = addr.String()
+	}
+	return json.Marshal(&addrInfoJson{
+		ID:    pi.ID,
+		Addrs: addrs,
+	})
+}
+
+func (pi *AddrInfo) UnmarshalJSON(b []byte) (err error) {
+	defer func() { catch.HandlePanic(recover(), &err, "libp2p addr info unmarshal") }()
+	var data addrInfoJson
+	if err := json.Unmarshal(b, &data); err != nil {
 		return err
 	}
-	pid, err := IDB58Decode(data["ID"].(string))
-	if err != nil {
-		return err
-	}
-	pi.ID = pid
-	addrs, ok := data["Addrs"].([]interface{})
-	if ok {
-		for _, a := range addrs {
-			pi.Addrs = append(pi.Addrs, ma.StringCast(a.(string)))
+	addrs := make([]ma.Multiaddr, len(data.Addrs))
+	for i, addr := range data.Addrs {
+		maddr, err := ma.NewMultiaddr(addr)
+		if err != nil {
+			return err
 		}
+		addrs[i] = maddr
 	}
+
+	pi.ID = data.ID
+	pi.Addrs = addrs
 	return nil
 }
